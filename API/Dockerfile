@@ -1,11 +1,11 @@
-# Use the official Golang Alpine image as a base image
-FROM golang:1.21-alpine
+# Use the official Golang Bullseye image as a base image
+FROM golang:tip-bullseye
 
 # Set the working directory inside the container
 WORKDIR /app
 
 # Install necessary build tools
-RUN apk add --no-cache git
+RUN apt-get update && apt-get install -y git
 
 # Copy go.mod and go.sum files first to leverage Docker layer caching
 COPY go.mod go.sum ./

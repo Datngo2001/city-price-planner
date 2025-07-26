@@ -1,5 +1,5 @@
 # Use the official Golang Bullseye image as a base image
-FROM golang:tip-bullseye
+FROM golang:tip-bullseye AS builder
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -17,11 +17,28 @@ RUN go mod download
 # Copy the rest of the application code
 COPY . .
 
-# Build the Go application with debugging information
-RUN go build -gcflags="all=-N -l" -o main .
+# Build argument to determine build mode
+ARG BUILD_MODE=production
 
-# Expose the application port and debug port
+# Build the Go application
+RUN if [ "$BUILD_MODE" = "debug" ]; then \
+        go build -gcflags="all=-N -l" -o main .; \
+    else \
+        go build -o main .; \
+    fi
+
+# Production stage
+FROM golang:tip-bullseye AS production
+WORKDIR /app
+COPY --from=builder /app/main .
+EXPOSE 8080
+CMD ["./main"]
+
+# Debug stage
+FROM golang:tip-bullseye AS debug
+WORKDIR /app
+COPY --from=builder /go/bin/dlv /usr/local/bin/dlv
+COPY --from=builder /app/main .
+COPY --from=builder /app .
 EXPOSE 8080 2345
-
-# Command to run Delve in debug mode
-CMD ["dlv", "debug", "--headless", "--listen=:2345", "--api-version=2", "--accept-multiclient", "--continue", "./main.go"]
+CMD ["dlv", "exec", "./main", "--headless", "--listen=:2345", "--api-version=2", "--accept-multiclient", "--continue"]

@@ -8,9 +8,9 @@
         {
             "type": "dockerfile",
             "request": "launch",
-            "name": "Docker: Build",
-            "dockerfile": "Dockerfile",
-            "contextPath": "${workspaceFolder}"
+            "name": "Docker: Build Production",
+            "dockerfile": "api/Dockerfile",
+            "contextPath": "${workspaceFolder}/api"
         },
         {
             "name": "Docker: Debug Go API",
@@ -25,7 +25,7 @@
                 {
                     "from": "${workspaceFolder}\\api",
                     "to": "/app"
-                },
+                }
             ]
         }
     ]

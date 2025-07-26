@@ -24,9 +24,48 @@ api/
 
 ## Running the API
 
+### Switching Between Debug and Production Modes
+
+The Docker setup supports both production and debug modes:
+
+#### Production Mode (Normal Mode)
+**For regular use without debugging:**
+
+1. **Build the production image:**
+   ```powershell
+   docker build --target production -t city-price-planner-api:prod ./
+   ```
+
+2. **Run the production container:**
+   ```powershell
+   docker run -p 8080:8080 --name city-price-planner-api-prod city-price-planner-api:prod
+   ```
+
+#### Debug Mode
+**For development with debugging support:**
+
+1. **Build the debug image:**
+   ```powershell
+   docker build --target debug -t city-price-planner-api:debug ./
+   ```
+
+2. **Run the debug container:**
+   ```powershell
+   docker run -p 8080:8080 -p 2345:2345 --security-opt="seccomp=unconfined" --name city-price-planner-api-debug city-price-planner-api:debug
+   ```
+
 ### Option 1: Run with Docker (Recommended)
 
-1. **Build the Docker image:**
+### Quick Commands Reference
+
+| Mode | Build Command | Run Command |
+|------|---------------|-------------|
+| **Production** | `docker build --target production -t city-price-planner-api:prod ./` | `docker run -p 8080:8080 --name api-prod city-price-planner-api:prod` |
+| **Debug** | `docker build --target debug -t city-price-planner-api:debug ./` | `docker run -p 8080:8080 -p 2345:2345 --security-opt="seccomp=unconfined" --name api-debug city-price-planner-api:debug` |
+
+### Legacy Method (Single Mode)
+
+1. **Build the Docker image (debug mode):**
    ```powershell
    docker build -t city-price-planner-api .
    ```
@@ -69,12 +108,12 @@ The project includes a VS Code launch configuration (`.vscode/launch.json`) with
 
 1. **Build the debug-enabled Docker image:**
    ```powershell
-   docker build -t city-price-planner-api .
+   docker build --target debug -t city-price-planner-api:debug ./
    ```
 
 2. **Run the container with debugging enabled:**
    ```powershell
-   docker run -p 8080:8080 -p 2345:2345 --security-opt="seccomp=unconfined" --name city-price-planner-api city-price-planner-api
+   docker run -p 8080:8080 -p 2345:2345 --security-opt="seccomp=unconfined" --name city-price-planner-api-debug city-price-planner-api:debug
    ```
 
    **Port Explanation:**

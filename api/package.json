@@ -12,7 +12,16 @@
     "test:watch": "jest --watch",
     "demo": "ts-node src/demo.ts",
     "setup": "ts-node src/setup.ts",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "docker:build": "docker build -t city-price-planner-api .",
+    "docker:build:dev": "docker build --target development -t city-price-planner-api:dev .",
+    "docker:run": "docker run -p 3000:3000 --env-file .env.docker city-price-planner-api",
+    "docker:run:dev": "docker run -p 3000:3000 -v ${PWD}/src:/app/src city-price-planner-api:dev",
+    "docker:up": "docker-compose --profile production up -d",
+    "docker:up:dev": "docker-compose --profile development up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f api",
+    "docker:logs:dev": "docker-compose logs -f api-dev"
   },
   "keywords": [
     "nodejs",

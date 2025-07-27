@@ -1,0 +1,99 @@
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7-jammy
+    container_name: city-price-planner-db
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: city-price-planner
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - city-price-planner-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # API Service - Development
+  api-dev:
+    build:
+      context: .
+      target: development
+    container_name: city-price-planner-api-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/city-price-planner?authSource=admin
+      PORT: 3000
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src:/app/src
+      - ./package.json:/app/package.json
+      - ./tsconfig.json:/app/tsconfig.json
+      - /app/node_modules
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - city-price-planner-network
+    profiles:
+      - development
+
+  # API Service - Production
+  api:
+    build:
+      context: .
+      target: production
+    container_name: city-price-planner-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/city-price-planner?authSource=admin
+      PORT: 3000
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - city-price-planner-network
+    profiles:
+      - production
+
+  # Redis Cache (Optional)
+  redis:
+    image: redis:7-alpine
+    container_name: city-price-planner-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - city-price-planner-network
+    profiles:
+      - cache
+
+networks:
+  city-price-planner-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local

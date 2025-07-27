@@ -1,0 +1,14 @@
+{
+    "recommendations": [
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-json",
+        "ms-vscode.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-npm-scripts",
+        "ms-vscode.vscode-js-debug",
+        "mongodb.mongodb-vscode",
+        "humao.rest-client",
+        "streetsidesoftware.code-spell-checker"
+    ]
+}

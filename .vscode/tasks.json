@@ -2,18 +2,107 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Start API Server",
+			"label": "build-api",
+			"type": "shell",
+			"command": "npm",
+			"args": ["run", "build"],
+			"options": {
+				"cwd": "${workspaceFolder}/api"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "silent",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"problemMatcher": ["$tsc"]
+		},
+		{
+			"label": "dev-api",
+			"type": "shell",
+			"command": "npm",
+			"args": ["run", "dev"],
+			"options": {
+				"cwd": "${workspaceFolder}/api"
+			},
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"isBackground": true,
+			"problemMatcher": {
+				"owner": "typescript",
+				"pattern": "$tsc",
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "Starting compilation in watch mode",
+					"endsPattern": "Found 0 errors. Watching for file changes."
+				}
+			}
+		},
+		{
+			"label": "test-api",
+			"type": "shell",
+			"command": "npm",
+			"args": ["run", "test"],
+			"options": {
+				"cwd": "${workspaceFolder}/api"
+			},
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "type-check-api",
+			"type": "shell",
+			"command": "npm",
+			"args": ["run", "type-check"],
+			"options": {
+				"cwd": "${workspaceFolder}/api"
+			},
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "silent",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"problemMatcher": ["$tsc"]
+		},
+		{
+			"label": "Start API Server (Legacy)",
 			"type": "shell",
 			"command": "node",
 			"args": [
-				"server.js"
+				"dist/server.js"
 			],
 			"group": "build",
 			"isBackground": true,
 			"problemMatcher": [],
 			"options": {
 				"cwd": "${workspaceFolder}/api"
-			}
+			},
+			"dependsOn": "build-api"
 		}
 	]
 }

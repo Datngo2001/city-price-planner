@@ -7,11 +7,66 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "API",
+            "name": "API (TypeScript)",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\api\\server.js"
+            "program": "${workspaceFolder}\\api\\src\\server.ts",
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "envFile": "${workspaceFolder}\\api\\.env",
+            "restart": true,
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "API (Production Build)",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}\\api\\dist\\server.js",
+            "env": {
+                "NODE_ENV": "production"
+            },
+            "envFile": "${workspaceFolder}\\api\\.env",
+            "preLaunchTask": "build-api",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "API Tests",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}\\api\\node_modules\\jest\\bin\\jest.js",
+            "args": [
+                "--runInBand",
+                "--detectOpenHandles",
+                "--forceExit"
+            ],
+            "env": {
+                "NODE_ENV": "test"
+            },
+            "envFile": "${workspaceFolder}\\api\\.env",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Attach to API",
+            "port": 9229,
+            "restart": true,
+            "localRoot": "${workspaceFolder}\\api",
+            "remoteRoot": "${workspaceFolder}\\api",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
         }
     ]
 }

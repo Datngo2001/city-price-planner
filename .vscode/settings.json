@@ -1,0 +1,22 @@
+{
+    "typescript.preferences.noSemicolons": "off",
+    "typescript.suggest.autoImports": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/dist": false,
+        "**/.git": true,
+        "**/.DS_Store": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true
+    },
+    "typescript.preferences.includePackageJsonAutoImports": "on",
+    "eslint.workingDirectories": ["api"],
+    "typescript.enablePromptUseWorkspaceTsdk": true
+}

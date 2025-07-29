@@ -1,15 +1,16 @@
-import express, { Application, Request, Response } from 'express';
-import mongoose from 'mongoose';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import express, { Application, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import mongoose from 'mongoose';
+import morgan from 'morgan';
 import config from './config';
 import logger from './utils/logger';
 
 // Import routes (will be uncommented when routes are converted)
-// import authRoutes from './routes/auth';
+import authRoutes from './routes/auth';
 // import cityRoutes from './routes/cities';
 // import priceRoutes from './routes/prices';
 // import userRoutes from './routes/users';
@@ -55,6 +56,9 @@ if (config.server.env === 'development') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Cookie parsing middleware
+app.use(cookieParser());
+
 // Database connection
 mongoose.connect(config.database.uri, config.database.options)
 .then(() => {
@@ -77,7 +81,7 @@ app.get('/health', (req: Request, res: Response) => {
 
 // API routes (will be uncommented when routes are converted)
 const apiVersion = process.env.API_VERSION || 'v1';
-// app.use(`/api/${apiVersion}/auth`, authRoutes);
+app.use(`/api/${apiVersion}/auth`, authRoutes);
 // app.use(`/api/${apiVersion}/cities`, cityRoutes);
 // app.use(`/api/${apiVersion}/prices`, priceRoutes);
 // app.use(`/api/${apiVersion}/users`, userRoutes);

@@ -168,7 +168,7 @@ export interface IPriceInput {
 
 // Request types
 export interface AuthenticatedRequest extends Request {
-  user: IUser;
+  user?: IUser;
 }
 
 export interface OptionalAuthRequest extends Request {

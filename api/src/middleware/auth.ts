@@ -1,22 +1,27 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
 import User from '@/models/User';
-import { AuthenticatedRequest, OptionalAuthRequest, JWTPayload, ApiResponse } from '@/types';
+import { ApiResponse, AuthenticatedRequest, JWTPayload, OptionalAuthRequest } from '@/types';
+import { NextFunction, Response } from 'express';
+import jwt from 'jsonwebtoken';
 
 const auth = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // Get token from header
-    const authHeader = req.header('Authorization');
+    // Try to get token from cookie first, then fallback to Authorization header
+    let token = req.cookies?.token;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
+      const authHeader = req.header('Authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7); // Remove 'Bearer ' prefix
+      }
+    }
+    
+    if (!token) {
       res.status(401).json({
         success: false,
         message: 'No token provided or invalid format'
       } as ApiResponse);
       return;
     }
-
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JWTPayload;
@@ -42,6 +47,7 @@ const auth = async (req: AuthenticatedRequest, res: Response, next: NextFunction
 
     // Add user to request
     req.user = user;
+
     next();
   } catch (error: any) {
     if (error.name === 'JsonWebTokenError') {
@@ -94,10 +100,17 @@ const authorize = (...roles: string[]) => {
 // Optional authentication middleware (doesn't fail if no token)
 const optionalAuth = async (req: OptionalAuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const authHeader = req.header('Authorization');
+    // Try to get token from cookie first, then fallback to Authorization header
+    let token = req.cookies?.token;
     
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
+    if (!token) {
+      const authHeader = req.header('Authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
+    
+    if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JWTPayload;
       const user = await User.findById(decoded.id).select('-password');
       
@@ -118,3 +131,4 @@ export {
   authorize,
   optionalAuth
 };
+

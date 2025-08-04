@@ -50,6 +50,14 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       token,
     };
 
+    // Set HTTP-only cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production',
+      sameSite: (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+    });
+
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
@@ -105,6 +113,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       token,
     };
 
+    // Set HTTP-only cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production',
+      sameSite: (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+    });
+
     res.status(200).json({
       success: true,
       message: 'Login successful',
@@ -141,6 +157,28 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
     res.status(500).json({
       success: false,
       message: 'Error retrieving profile',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+export const logout = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Clear the HTTP-only cookie
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production',
+      sameSite: (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'strict',
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error logging out',
       error: error instanceof Error ? error.message : 'Unknown error',
     });
   }

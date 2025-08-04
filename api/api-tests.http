@@ -18,7 +18,7 @@ Content-Type: application/json
   "lastName": "Doe"
 }
 
-### Login User
+### Login User (Returns token in response body AND HTTP-only cookie)
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
@@ -27,7 +27,15 @@ Content-Type: application/json
   "password": "password123"
 }
 
-### Get Profile
+### Logout User (Clears HTTP-only cookie)
+POST {{baseUrl}}/auth/logout
+
+### Get Profile (Using Authorization header)
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{authToken}}
+
+### Get Profile (Using HTTP-only cookie - will work after login)
+GET {{baseUrl}}/auth/profile
 GET {{baseUrl}}/auth/profile
 Authorization: Bearer {{authToken}}
 

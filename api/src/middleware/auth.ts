@@ -9,7 +9,12 @@ export const authenticate = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
+    // Check for token in Authorization header first, then in cookies
+    let token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token && req.cookies) {
+      token = req.cookies.token;
+    }
 
     if (!token) {
       res.status(401).json({
@@ -52,7 +57,12 @@ export const optionalAuthenticate = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
+    // Check for token in Authorization header first, then in cookies
+    let token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token && req.cookies) {
+      token = req.cookies.token;
+    }
 
     if (!token) {
       next();

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getProfile, login, register } from '../controllers/authController';
+import { getProfile, login, logout, register } from '../controllers/authController';
 import { authenticate } from '../middleware/auth';
 import { loginSchema, userCreateSchema, validate } from '../middleware/validation';
 
@@ -18,6 +18,13 @@ router.post('/register', validate(userCreateSchema), register);
  * @access  Public
  */
 router.post('/login', validate(loginSchema), login);
+
+/**
+ * @route   POST /api/auth/logout
+ * @desc    Logout user
+ * @access  Public
+ */
+router.post('/logout', logout);
 
 /**
  * @route   GET /api/auth/profile

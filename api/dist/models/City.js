@@ -33,129 +33,78 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.City = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const citySchema = new mongoose_1.Schema({
     name: {
         type: String,
         required: [true, 'City name is required'],
         trim: true,
-        maxlength: [100, 'City name cannot exceed 100 characters']
+        maxlength: [100, 'City name cannot exceed 100 characters'],
     },
     country: {
         type: String,
         required: [true, 'Country is required'],
         trim: true,
-        maxlength: [100, 'Country name cannot exceed 100 characters']
-    },
-    countryCode: {
-        type: String,
-        required: [true, 'Country code is required'],
-        uppercase: true,
-        length: [2, 'Country code must be exactly 2 characters'],
-        match: [/^[A-Z]{2}$/, 'Country code must be 2 uppercase letters']
+        maxlength: [100, 'Country name cannot exceed 100 characters'],
     },
     region: {
         type: String,
         trim: true,
-        maxlength: [100, 'Region name cannot exceed 100 characters']
+        maxlength: [100, 'Region name cannot exceed 100 characters'],
     },
-    continent: {
-        type: String,
-        required: [true, 'Continent is required'],
-        enum: ['Africa', 'Antarctica', 'Asia', 'Europe', 'North America', 'Oceania', 'South America']
+    latitude: {
+        type: Number,
+        required: [true, 'Latitude is required'],
+        min: [-90, 'Latitude must be between -90 and 90'],
+        max: [90, 'Latitude must be between -90 and 90'],
     },
-    coordinates: {
-        latitude: {
-            type: Number,
-            required: [true, 'Latitude is required'],
-            min: [-90, 'Latitude must be between -90 and 90'],
-            max: [90, 'Latitude must be between -90 and 90']
-        },
-        longitude: {
-            type: Number,
-            required: [true, 'Longitude is required'],
-            min: [-180, 'Longitude must be between -180 and 180'],
-            max: [180, 'Longitude must be between -180 and 180']
-        }
-    },
-    timezone: {
-        type: String,
-        required: [true, 'Timezone is required']
+    longitude: {
+        type: Number,
+        required: [true, 'Longitude is required'],
+        min: [-180, 'Longitude must be between -180 and 180'],
+        max: [180, 'Longitude must be between -180 and 180'],
     },
     population: {
         type: Number,
-        min: [0, 'Population cannot be negative']
+        min: [0, 'Population cannot be negative'],
     },
     currency: {
-        code: {
-            type: String,
-            required: [true, 'Currency code is required'],
-            uppercase: true,
-            length: [3, 'Currency code must be exactly 3 characters']
-        },
-        name: {
-            type: String,
-            required: [true, 'Currency name is required']
-        },
-        symbol: {
-            type: String,
-            required: [true, 'Currency symbol is required']
-        }
+        type: String,
+        required: [true, 'Currency is required'],
+        trim: true,
+        uppercase: true,
+        minlength: [3, 'Currency code must be 3 characters'],
+        maxlength: [3, 'Currency code must be 3 characters'],
     },
-    language: {
-        primary: {
-            type: String,
-            required: [true, 'Primary language is required']
-        },
-        others: [String]
+    timezone: {
+        type: String,
+        required: [true, 'Timezone is required'],
+        trim: true,
     },
     isActive: {
         type: Boolean,
-        default: true
+        default: true,
     },
-    metadata: {
-        addedBy: {
-            type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: 'User',
-            required: true
-        },
-        verifiedBy: {
-            type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: 'User'
-        },
-        verifiedAt: Date,
-        lastUpdated: {
-            type: Date,
-            default: Date.now
-        }
-    }
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: {
+        transform: function (doc, ret) {
+            delete ret.__v;
+            return ret;
+        },
+    },
 });
 citySchema.index({ name: 1, country: 1 }, { unique: true });
-citySchema.index({ countryCode: 1 });
-citySchema.index({ continent: 1 });
-citySchema.index({ 'coordinates.latitude': 1, 'coordinates.longitude': 1 });
+citySchema.index({ country: 1 });
+citySchema.index({ region: 1 });
 citySchema.index({ isActive: 1 });
-citySchema.index({
-    name: 'text',
-    country: 'text',
-    region: 'text'
-});
+citySchema.index({ location: '2dsphere' });
 citySchema.virtual('location').get(function () {
-    return `${this.name}, ${this.country}`;
+    return {
+        type: 'Point',
+        coordinates: [this.longitude, this.latitude],
+    };
 });
-citySchema.methods.distanceTo = function (otherCity) {
-    const R = 6371;
-    const dLat = (otherCity.coordinates.latitude - this.coordinates.latitude) * Math.PI / 180;
-    const dLon = (otherCity.coordinates.longitude - this.coordinates.longitude) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(this.coordinates.latitude * Math.PI / 180) *
-            Math.cos(otherCity.coordinates.latitude * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-};
-const City = mongoose_1.default.model('City', citySchema);
-exports.default = City;
+exports.City = mongoose_1.default.model('City', citySchema);
 //# sourceMappingURL=City.js.map

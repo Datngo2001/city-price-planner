@@ -1,1 +1,1 @@
-{"version":3,"file":"City.d.ts","sourceRoot":"","sources":["../../src/models/City.ts"],"names":[],"mappings":"AAAA,OAAiB,EAAU,KAAK,EAAE,MAAM,UAAU,CAAC;AACnD,OAAO,EAAE,KAAK,EAAc,MAAM,SAAS,CAAC;AAqI5C,QAAA,MAAM,IAAI,EAAE,KAAK,CAAC,KAAK,CAA6C,CAAC;AAErE,eAAe,IAAI,CAAC"}
+{"version":3,"file":"City.d.ts","sourceRoot":"","sources":["../../src/models/City.ts"],"names":[],"mappings":"AAAA,OAAO,QAAoB,MAAM,UAAU,CAAC;AAC5C,OAAO,EAAE,KAAK,EAAE,MAAM,UAAU,CAAC;AA8EjC,eAAO,MAAM,IAAI;;;;OAA4C,CAAC"}

@@ -1,234 +1,141 @@
-import { Request, Response, NextFunction } from 'express';
-import { body, validationResult, ValidationChain } from 'express-validator';
-import { ApiResponse, ValidationError } from '@/types';
+import { NextFunction, Request, Response } from 'express';
+import Joi from 'joi';
 
-// Generic validation result handler
-const handleValidationErrors = (req: Request, res: Response, next: NextFunction): void => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const validationErrors: ValidationError[] = errors.array().map(error => ({
-      field: (error as any).path || (error as any).param || 'unknown',
-      message: error.msg,
-      value: (error as any).value
-    }));
+// User validation schemas
+export const userCreateSchema = Joi.object({
+  username: Joi.string().min(3).max(30).required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).required(),
+  firstName: Joi.string().max(50).required(),
+  lastName: Joi.string().max(50).required(),
+});
 
-    const response: ApiResponse = {
-      success: false,
-      message: 'Validation failed',
-      errors: validationErrors
-    };
+export const userUpdateSchema = Joi.object({
+  username: Joi.string().min(3).max(30),
+  email: Joi.string().email(),
+  firstName: Joi.string().max(50),
+  lastName: Joi.string().max(50),
+  isActive: Joi.boolean(),
+});
 
-    res.status(400).json(response);
-    return;
-  }
-  next();
+export const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+});
+
+// City validation schemas
+export const cityCreateSchema = Joi.object({
+  name: Joi.string().max(100).required(),
+  country: Joi.string().max(100).required(),
+  region: Joi.string().max(100),
+  latitude: Joi.number().min(-90).max(90).required(),
+  longitude: Joi.number().min(-180).max(180).required(),
+  population: Joi.number().min(0),
+  currency: Joi.string().length(3).uppercase().required(),
+  timezone: Joi.string().required(),
+});
+
+export const cityUpdateSchema = Joi.object({
+  name: Joi.string().max(100),
+  country: Joi.string().max(100),
+  region: Joi.string().max(100),
+  latitude: Joi.number().min(-90).max(90),
+  longitude: Joi.number().min(-180).max(180),
+  population: Joi.number().min(0),
+  currency: Joi.string().length(3).uppercase(),
+  timezone: Joi.string(),
+  isActive: Joi.boolean(),
+});
+
+// Price validation schemas
+export const priceCreateSchema = Joi.object({
+  cityId: Joi.string().required(),
+  categoryId: Joi.string().required(),
+  category: Joi.string().max(100).required(),
+  subcategory: Joi.string().max(100),
+  itemName: Joi.string().max(200).required(),
+  price: Joi.number().min(0).required(),
+  currency: Joi.string().length(3).uppercase().required(),
+  unit: Joi.string().max(50),
+  source: Joi.string().max(200),
+  notes: Joi.string().max(500),
+  dateRecorded: Joi.date(),
+});
+
+export const priceUpdateSchema = Joi.object({
+  categoryId: Joi.string(),
+  category: Joi.string().max(100),
+  subcategory: Joi.string().max(100),
+  itemName: Joi.string().max(200),
+  price: Joi.number().min(0),
+  currency: Joi.string().length(3).uppercase(),
+  unit: Joi.string().max(50),
+  source: Joi.string().max(200),
+  notes: Joi.string().max(500),
+  dateRecorded: Joi.date(),
+  isVerified: Joi.boolean(),
+});
+
+// Category validation schemas
+export const categoryCreateSchema = Joi.object({
+  name: Joi.string().max(100).required(),
+  description: Joi.string().max(500),
+  icon: Joi.string().max(50),
+  color: Joi.string().pattern(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/),
+  parentId: Joi.string(),
+});
+
+// Query parameters validation
+export const queryParamsSchema = Joi.object({
+  page: Joi.number().min(1).default(1),
+  limit: Joi.number().min(1).max(100).default(10),
+  sortBy: Joi.string(),
+  sortOrder: Joi.string().valid('asc', 'desc').default('asc'),
+  search: Joi.string(),
+});
+
+// Validation middleware factory
+export const validate = (schema: Joi.ObjectSchema) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const { error, value } = schema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
+
+    if (error) {
+      const errorMessages = error.details.map(detail => detail.message);
+      res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        error: errorMessages,
+      });
+      return;
+    }
+
+    req.body = value;
+    next();
+  };
 };
 
-// User validation rules
-const validateUserRegistration = [
-  body('username')
-    .trim()
-    .isLength({ min: 3, max: 30 })
-    .withMessage('Username must be between 3 and 30 characters')
-    .matches(/^[a-zA-Z0-9_-]+$/)
-    .withMessage('Username can only contain letters, numbers, underscores, and hyphens'),
-  
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Please provide a valid email'),
-  
-  body('password')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number'),
-  
-  body('firstName')
-    .trim()
-    .isLength({ min: 1, max: 50 })
-    .withMessage('First name is required and cannot exceed 50 characters'),
-  
-  body('lastName')
-    .trim()
-    .isLength({ min: 1, max: 50 })
-    .withMessage('Last name is required and cannot exceed 50 characters'),
-  
-  handleValidationErrors
-];
+// Query validation middleware
+export const validateQuery = (schema: Joi.ObjectSchema) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const { error, value } = schema.validate(req.query, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
 
-const validateUserLogin = [
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Please provide a valid email'),
-  
-  body('password')
-    .notEmpty()
-    .withMessage('Password is required'),
-  
-  handleValidationErrors
-];
+    if (error) {
+      const errorMessages = error.details.map(detail => detail.message);
+      res.status(400).json({
+        success: false,
+        message: 'Query validation error',
+        error: errorMessages,
+      });
+      return;
+    }
 
-// City validation rules
-const validateCity = [
-  body('name')
-    .trim()
-    .isLength({ min: 1, max: 100 })
-    .withMessage('City name is required and cannot exceed 100 characters'),
-  
-  body('country')
-    .trim()
-    .isLength({ min: 1, max: 100 })
-    .withMessage('Country is required and cannot exceed 100 characters'),
-  
-  body('countryCode')
-    .trim()
-    .isLength({ min: 2, max: 2 })
-    .isAlpha()
-    .toUpperCase()
-    .withMessage('Country code must be exactly 2 letters'),
-  
-  body('continent')
-    .isIn(['Africa', 'Antarctica', 'Asia', 'Europe', 'North America', 'Oceania', 'South America'])
-    .withMessage('Invalid continent'),
-  
-  body('coordinates.latitude')
-    .isFloat({ min: -90, max: 90 })
-    .withMessage('Latitude must be between -90 and 90'),
-  
-  body('coordinates.longitude')
-    .isFloat({ min: -180, max: 180 })
-    .withMessage('Longitude must be between -180 and 180'),
-  
-  body('timezone')
-    .notEmpty()
-    .withMessage('Timezone is required'),
-  
-  body('currency.code')
-    .trim()
-    .isLength({ min: 3, max: 3 })
-    .isAlpha()
-    .toUpperCase()
-    .withMessage('Currency code must be exactly 3 letters'),
-  
-  body('currency.name')
-    .trim()
-    .notEmpty()
-    .withMessage('Currency name is required'),
-  
-  body('currency.symbol')
-    .trim()
-    .notEmpty()
-    .withMessage('Currency symbol is required'),
-  
-  body('language.primary')
-    .trim()
-    .notEmpty()
-    .withMessage('Primary language is required'),
-  
-  handleValidationErrors
-];
-
-// Price validation rules
-const validatePrice = [
-  body('city')
-    .isMongoId()
-    .withMessage('Valid city ID is required'),
-  
-  body('category')
-    .isIn(['housing', 'food', 'transportation', 'utilities', 'healthcare', 'education', 'entertainment', 'clothing', 'services', 'other'])
-    .withMessage('Invalid category'),
-  
-  body('subcategory')
-    .trim()
-    .isLength({ min: 1, max: 100 })
-    .withMessage('Subcategory is required and cannot exceed 100 characters'),
-  
-  body('item.name')
-    .trim()
-    .isLength({ min: 1, max: 200 })
-    .withMessage('Item name is required and cannot exceed 200 characters'),
-  
-  body('item.unit')
-    .trim()
-    .isLength({ min: 1, max: 50 })
-    .withMessage('Unit is required and cannot exceed 50 characters'),
-  
-  body('price.amount')
-    .isFloat({ min: 0 })
-    .withMessage('Price amount must be a positive number'),
-  
-  body('price.currency')
-    .trim()
-    .isLength({ min: 3, max: 3 })
-    .isAlpha()
-    .toUpperCase()
-    .withMessage('Currency must be exactly 3 letters'),
-  
-  body('source.type')
-    .isIn(['user_reported', 'official', 'website', 'api', 'survey', 'other'])
-    .withMessage('Invalid source type'),
-  
-  body('source.name')
-    .trim()
-    .isLength({ min: 1, max: 100 })
-    .withMessage('Source name is required and cannot exceed 100 characters'),
-  
-  handleValidationErrors
-];
-
-// Update validation rules (partial validation)
-const validateUserUpdate = [
-  body('username')
-    .optional()
-    .trim()
-    .isLength({ min: 3, max: 30 })
-    .withMessage('Username must be between 3 and 30 characters')
-    .matches(/^[a-zA-Z0-9_-]+$/)
-    .withMessage('Username can only contain letters, numbers, underscores, and hyphens'),
-  
-  body('email')
-    .optional()
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Please provide a valid email'),
-  
-  body('firstName')
-    .optional()
-    .trim()
-    .isLength({ min: 1, max: 50 })
-    .withMessage('First name cannot exceed 50 characters'),
-  
-  body('lastName')
-    .optional()
-    .trim()
-    .isLength({ min: 1, max: 50 })
-    .withMessage('Last name cannot exceed 50 characters'),
-  
-  handleValidationErrors
-];
-
-const validatePasswordChange = [
-  body('currentPassword')
-    .notEmpty()
-    .withMessage('Current password is required'),
-  
-  body('newPassword')
-    .isLength({ min: 6 })
-    .withMessage('New password must be at least 6 characters long')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('New password must contain at least one lowercase letter, one uppercase letter, and one number'),
-  
-  handleValidationErrors
-];
-
-export {
-  validateUserRegistration,
-  validateUserLogin,
-  validateCity,
-  validatePrice,
-  validateUserUpdate,
-  validatePasswordChange,
-  handleValidationErrors
+    req.query = value;
+    next();
+  };
 };

@@ -1,186 +1,127 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleValidationErrors = exports.validatePasswordChange = exports.validateUserUpdate = exports.validatePrice = exports.validateCity = exports.validateUserLogin = exports.validateUserRegistration = void 0;
-const express_validator_1 = require("express-validator");
-const handleValidationErrors = (req, res, next) => {
-    const errors = (0, express_validator_1.validationResult)(req);
-    if (!errors.isEmpty()) {
-        const validationErrors = errors.array().map(error => ({
-            field: error.path || error.param || 'unknown',
-            message: error.msg,
-            value: error.value
-        }));
-        const response = {
-            success: false,
-            message: 'Validation failed',
-            errors: validationErrors
-        };
-        res.status(400).json(response);
-        return;
-    }
-    next();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.handleValidationErrors = handleValidationErrors;
-const validateUserRegistration = [
-    (0, express_validator_1.body)('username')
-        .trim()
-        .isLength({ min: 3, max: 30 })
-        .withMessage('Username must be between 3 and 30 characters')
-        .matches(/^[a-zA-Z0-9_-]+$/)
-        .withMessage('Username can only contain letters, numbers, underscores, and hyphens'),
-    (0, express_validator_1.body)('email')
-        .isEmail()
-        .normalizeEmail()
-        .withMessage('Please provide a valid email'),
-    (0, express_validator_1.body)('password')
-        .isLength({ min: 6 })
-        .withMessage('Password must be at least 6 characters long')
-        .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-        .withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number'),
-    (0, express_validator_1.body)('firstName')
-        .trim()
-        .isLength({ min: 1, max: 50 })
-        .withMessage('First name is required and cannot exceed 50 characters'),
-    (0, express_validator_1.body)('lastName')
-        .trim()
-        .isLength({ min: 1, max: 50 })
-        .withMessage('Last name is required and cannot exceed 50 characters'),
-    handleValidationErrors
-];
-exports.validateUserRegistration = validateUserRegistration;
-const validateUserLogin = [
-    (0, express_validator_1.body)('email')
-        .isEmail()
-        .normalizeEmail()
-        .withMessage('Please provide a valid email'),
-    (0, express_validator_1.body)('password')
-        .notEmpty()
-        .withMessage('Password is required'),
-    handleValidationErrors
-];
-exports.validateUserLogin = validateUserLogin;
-const validateCity = [
-    (0, express_validator_1.body)('name')
-        .trim()
-        .isLength({ min: 1, max: 100 })
-        .withMessage('City name is required and cannot exceed 100 characters'),
-    (0, express_validator_1.body)('country')
-        .trim()
-        .isLength({ min: 1, max: 100 })
-        .withMessage('Country is required and cannot exceed 100 characters'),
-    (0, express_validator_1.body)('countryCode')
-        .trim()
-        .isLength({ min: 2, max: 2 })
-        .isAlpha()
-        .toUpperCase()
-        .withMessage('Country code must be exactly 2 letters'),
-    (0, express_validator_1.body)('continent')
-        .isIn(['Africa', 'Antarctica', 'Asia', 'Europe', 'North America', 'Oceania', 'South America'])
-        .withMessage('Invalid continent'),
-    (0, express_validator_1.body)('coordinates.latitude')
-        .isFloat({ min: -90, max: 90 })
-        .withMessage('Latitude must be between -90 and 90'),
-    (0, express_validator_1.body)('coordinates.longitude')
-        .isFloat({ min: -180, max: 180 })
-        .withMessage('Longitude must be between -180 and 180'),
-    (0, express_validator_1.body)('timezone')
-        .notEmpty()
-        .withMessage('Timezone is required'),
-    (0, express_validator_1.body)('currency.code')
-        .trim()
-        .isLength({ min: 3, max: 3 })
-        .isAlpha()
-        .toUpperCase()
-        .withMessage('Currency code must be exactly 3 letters'),
-    (0, express_validator_1.body)('currency.name')
-        .trim()
-        .notEmpty()
-        .withMessage('Currency name is required'),
-    (0, express_validator_1.body)('currency.symbol')
-        .trim()
-        .notEmpty()
-        .withMessage('Currency symbol is required'),
-    (0, express_validator_1.body)('language.primary')
-        .trim()
-        .notEmpty()
-        .withMessage('Primary language is required'),
-    handleValidationErrors
-];
-exports.validateCity = validateCity;
-const validatePrice = [
-    (0, express_validator_1.body)('city')
-        .isMongoId()
-        .withMessage('Valid city ID is required'),
-    (0, express_validator_1.body)('category')
-        .isIn(['housing', 'food', 'transportation', 'utilities', 'healthcare', 'education', 'entertainment', 'clothing', 'services', 'other'])
-        .withMessage('Invalid category'),
-    (0, express_validator_1.body)('subcategory')
-        .trim()
-        .isLength({ min: 1, max: 100 })
-        .withMessage('Subcategory is required and cannot exceed 100 characters'),
-    (0, express_validator_1.body)('item.name')
-        .trim()
-        .isLength({ min: 1, max: 200 })
-        .withMessage('Item name is required and cannot exceed 200 characters'),
-    (0, express_validator_1.body)('item.unit')
-        .trim()
-        .isLength({ min: 1, max: 50 })
-        .withMessage('Unit is required and cannot exceed 50 characters'),
-    (0, express_validator_1.body)('price.amount')
-        .isFloat({ min: 0 })
-        .withMessage('Price amount must be a positive number'),
-    (0, express_validator_1.body)('price.currency')
-        .trim()
-        .isLength({ min: 3, max: 3 })
-        .isAlpha()
-        .toUpperCase()
-        .withMessage('Currency must be exactly 3 letters'),
-    (0, express_validator_1.body)('source.type')
-        .isIn(['user_reported', 'official', 'website', 'api', 'survey', 'other'])
-        .withMessage('Invalid source type'),
-    (0, express_validator_1.body)('source.name')
-        .trim()
-        .isLength({ min: 1, max: 100 })
-        .withMessage('Source name is required and cannot exceed 100 characters'),
-    handleValidationErrors
-];
-exports.validatePrice = validatePrice;
-const validateUserUpdate = [
-    (0, express_validator_1.body)('username')
-        .optional()
-        .trim()
-        .isLength({ min: 3, max: 30 })
-        .withMessage('Username must be between 3 and 30 characters')
-        .matches(/^[a-zA-Z0-9_-]+$/)
-        .withMessage('Username can only contain letters, numbers, underscores, and hyphens'),
-    (0, express_validator_1.body)('email')
-        .optional()
-        .isEmail()
-        .normalizeEmail()
-        .withMessage('Please provide a valid email'),
-    (0, express_validator_1.body)('firstName')
-        .optional()
-        .trim()
-        .isLength({ min: 1, max: 50 })
-        .withMessage('First name cannot exceed 50 characters'),
-    (0, express_validator_1.body)('lastName')
-        .optional()
-        .trim()
-        .isLength({ min: 1, max: 50 })
-        .withMessage('Last name cannot exceed 50 characters'),
-    handleValidationErrors
-];
-exports.validateUserUpdate = validateUserUpdate;
-const validatePasswordChange = [
-    (0, express_validator_1.body)('currentPassword')
-        .notEmpty()
-        .withMessage('Current password is required'),
-    (0, express_validator_1.body)('newPassword')
-        .isLength({ min: 6 })
-        .withMessage('New password must be at least 6 characters long')
-        .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-        .withMessage('New password must contain at least one lowercase letter, one uppercase letter, and one number'),
-    handleValidationErrors
-];
-exports.validatePasswordChange = validatePasswordChange;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.validateQuery = exports.validate = exports.queryParamsSchema = exports.categoryCreateSchema = exports.priceUpdateSchema = exports.priceCreateSchema = exports.cityUpdateSchema = exports.cityCreateSchema = exports.loginSchema = exports.userUpdateSchema = exports.userCreateSchema = void 0;
+const joi_1 = __importDefault(require("joi"));
+exports.userCreateSchema = joi_1.default.object({
+    username: joi_1.default.string().min(3).max(30).required(),
+    email: joi_1.default.string().email().required(),
+    password: joi_1.default.string().min(6).required(),
+    firstName: joi_1.default.string().max(50).required(),
+    lastName: joi_1.default.string().max(50).required(),
+});
+exports.userUpdateSchema = joi_1.default.object({
+    username: joi_1.default.string().min(3).max(30),
+    email: joi_1.default.string().email(),
+    firstName: joi_1.default.string().max(50),
+    lastName: joi_1.default.string().max(50),
+    isActive: joi_1.default.boolean(),
+});
+exports.loginSchema = joi_1.default.object({
+    email: joi_1.default.string().email().required(),
+    password: joi_1.default.string().required(),
+});
+exports.cityCreateSchema = joi_1.default.object({
+    name: joi_1.default.string().max(100).required(),
+    country: joi_1.default.string().max(100).required(),
+    region: joi_1.default.string().max(100),
+    latitude: joi_1.default.number().min(-90).max(90).required(),
+    longitude: joi_1.default.number().min(-180).max(180).required(),
+    population: joi_1.default.number().min(0),
+    currency: joi_1.default.string().length(3).uppercase().required(),
+    timezone: joi_1.default.string().required(),
+});
+exports.cityUpdateSchema = joi_1.default.object({
+    name: joi_1.default.string().max(100),
+    country: joi_1.default.string().max(100),
+    region: joi_1.default.string().max(100),
+    latitude: joi_1.default.number().min(-90).max(90),
+    longitude: joi_1.default.number().min(-180).max(180),
+    population: joi_1.default.number().min(0),
+    currency: joi_1.default.string().length(3).uppercase(),
+    timezone: joi_1.default.string(),
+    isActive: joi_1.default.boolean(),
+});
+exports.priceCreateSchema = joi_1.default.object({
+    cityId: joi_1.default.string().required(),
+    categoryId: joi_1.default.string().required(),
+    category: joi_1.default.string().max(100).required(),
+    subcategory: joi_1.default.string().max(100),
+    itemName: joi_1.default.string().max(200).required(),
+    price: joi_1.default.number().min(0).required(),
+    currency: joi_1.default.string().length(3).uppercase().required(),
+    unit: joi_1.default.string().max(50),
+    source: joi_1.default.string().max(200),
+    notes: joi_1.default.string().max(500),
+    dateRecorded: joi_1.default.date(),
+});
+exports.priceUpdateSchema = joi_1.default.object({
+    categoryId: joi_1.default.string(),
+    category: joi_1.default.string().max(100),
+    subcategory: joi_1.default.string().max(100),
+    itemName: joi_1.default.string().max(200),
+    price: joi_1.default.number().min(0),
+    currency: joi_1.default.string().length(3).uppercase(),
+    unit: joi_1.default.string().max(50),
+    source: joi_1.default.string().max(200),
+    notes: joi_1.default.string().max(500),
+    dateRecorded: joi_1.default.date(),
+    isVerified: joi_1.default.boolean(),
+});
+exports.categoryCreateSchema = joi_1.default.object({
+    name: joi_1.default.string().max(100).required(),
+    description: joi_1.default.string().max(500),
+    icon: joi_1.default.string().max(50),
+    color: joi_1.default.string().pattern(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/),
+    parentId: joi_1.default.string(),
+});
+exports.queryParamsSchema = joi_1.default.object({
+    page: joi_1.default.number().min(1).default(1),
+    limit: joi_1.default.number().min(1).max(100).default(10),
+    sortBy: joi_1.default.string(),
+    sortOrder: joi_1.default.string().valid('asc', 'desc').default('asc'),
+    search: joi_1.default.string(),
+});
+const validate = (schema) => {
+    return (req, res, next) => {
+        const { error, value } = schema.validate(req.body, {
+            abortEarly: false,
+            stripUnknown: true,
+        });
+        if (error) {
+            const errorMessages = error.details.map(detail => detail.message);
+            res.status(400).json({
+                success: false,
+                message: 'Validation error',
+                error: errorMessages,
+            });
+            return;
+        }
+        req.body = value;
+        next();
+    };
+};
+exports.validate = validate;
+const validateQuery = (schema) => {
+    return (req, res, next) => {
+        const { error, value } = schema.validate(req.query, {
+            abortEarly: false,
+            stripUnknown: true,
+        });
+        if (error) {
+            const errorMessages = error.details.map(detail => detail.message);
+            res.status(400).json({
+                success: false,
+                message: 'Query validation error',
+                error: errorMessages,
+            });
+            return;
+        }
+        req.query = value;
+        next();
+    };
+};
+exports.validateQuery = validateQuery;
 //# sourceMappingURL=validation.js.map

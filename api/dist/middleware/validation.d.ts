@@ -1,11 +1,14 @@
+import Joi from 'joi';
 import { Request, Response, NextFunction } from 'express';
-import { ValidationChain } from 'express-validator';
-declare const handleValidationErrors: (req: Request, res: Response, next: NextFunction) => void;
-declare const validateUserRegistration: (((req: Request, res: Response, next: NextFunction) => void) | ValidationChain)[];
-declare const validateUserLogin: (((req: Request, res: Response, next: NextFunction) => void) | ValidationChain)[];
-declare const validateCity: (((req: Request, res: Response, next: NextFunction) => void) | ValidationChain)[];
-declare const validatePrice: (((req: Request, res: Response, next: NextFunction) => void) | ValidationChain)[];
-declare const validateUserUpdate: (((req: Request, res: Response, next: NextFunction) => void) | ValidationChain)[];
-declare const validatePasswordChange: (((req: Request, res: Response, next: NextFunction) => void) | ValidationChain)[];
-export { validateUserRegistration, validateUserLogin, validateCity, validatePrice, validateUserUpdate, validatePasswordChange, handleValidationErrors };
+export declare const userCreateSchema: Joi.ObjectSchema<any>;
+export declare const userUpdateSchema: Joi.ObjectSchema<any>;
+export declare const loginSchema: Joi.ObjectSchema<any>;
+export declare const cityCreateSchema: Joi.ObjectSchema<any>;
+export declare const cityUpdateSchema: Joi.ObjectSchema<any>;
+export declare const priceCreateSchema: Joi.ObjectSchema<any>;
+export declare const priceUpdateSchema: Joi.ObjectSchema<any>;
+export declare const categoryCreateSchema: Joi.ObjectSchema<any>;
+export declare const queryParamsSchema: Joi.ObjectSchema<any>;
+export declare const validate: (schema: Joi.ObjectSchema) => (req: Request, res: Response, next: NextFunction) => void;
+export declare const validateQuery: (schema: Joi.ObjectSchema) => (req: Request, res: Response, next: NextFunction) => void;
 //# sourceMappingURL=validation.d.ts.map

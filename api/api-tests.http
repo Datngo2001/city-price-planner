@@ -1,0 +1,117 @@
+### City Price Planner API Tests
+
+@baseUrl = http://localhost:3000/api
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+### Health Check
+GET http://localhost:3000/health
+
+### Register User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "johndoe",
+  "email": "john@example.com",
+  "password": "password123",
+  "firstName": "John",
+  "lastName": "Doe"
+}
+
+### Login User
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+### Get Profile
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{authToken}}
+
+### Get All Cities
+GET {{baseUrl}}/cities?page=1&limit=10
+
+### Search Cities
+GET {{baseUrl}}/cities?search=london
+
+### Get Nearby Cities
+GET {{baseUrl}}/cities/nearby?latitude=51.5074&longitude=-0.1278&radius=100
+
+### Create City
+POST {{baseUrl}}/cities
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Berlin",
+  "country": "Germany",
+  "region": "Berlin",
+  "latitude": 52.5200,
+  "longitude": 13.4050,
+  "population": 3669491,
+  "currency": "EUR",
+  "timezone": "Europe/Berlin"
+}
+
+### Get City by ID
+GET {{baseUrl}}/cities/{{cityId}}
+
+### Update City
+PUT {{baseUrl}}/cities/{{cityId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "population": 3700000
+}
+
+### Get All Prices
+GET {{baseUrl}}/prices?page=1&limit=10
+
+### Get Prices by City
+GET {{baseUrl}}/prices?cityId={{cityId}}
+
+### Create Price
+POST {{baseUrl}}/prices
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "cityId": "{{cityId}}",
+  "categoryId": "{{categoryId}}",
+  "category": "Food & Dining",
+  "subcategory": "Restaurant",
+  "itemName": "Coffee (Regular)",
+  "price": 3.50,
+  "currency": "USD",
+  "unit": "cup",
+  "source": "Local cafe",
+  "notes": "Average price at downtown location"
+}
+
+### Get Price Averages
+GET {{baseUrl}}/prices/city/{{cityId}}/averages
+
+### Get Price Averages by Category
+GET {{baseUrl}}/prices/city/{{cityId}}/averages?category=food
+
+### Get All Users
+GET {{baseUrl}}/users
+Authorization: Bearer {{authToken}}
+
+### Get User by ID
+GET {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{authToken}}
+
+### Update User
+PUT {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Smith"
+}

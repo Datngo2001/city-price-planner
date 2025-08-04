@@ -33,167 +33,94 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Price = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const priceSchema = new mongoose_1.Schema({
-    city: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
+    cityId: {
+        type: String,
+        required: [true, 'City ID is required'],
         ref: 'City',
-        required: [true, 'City is required']
+    },
+    categoryId: {
+        type: String,
+        required: [true, 'Category ID is required'],
+        ref: 'Category',
     },
     category: {
         type: String,
         required: [true, 'Category is required'],
-        enum: [
-            'housing',
-            'food',
-            'transportation',
-            'utilities',
-            'healthcare',
-            'education',
-            'entertainment',
-            'clothing',
-            'services',
-            'other'
-        ]
+        trim: true,
+        maxlength: [100, 'Category cannot exceed 100 characters'],
     },
     subcategory: {
         type: String,
-        required: [true, 'Subcategory is required'],
         trim: true,
-        maxlength: [100, 'Subcategory cannot exceed 100 characters']
+        maxlength: [100, 'Subcategory cannot exceed 100 characters'],
     },
-    item: {
-        name: {
-            type: String,
-            required: [true, 'Item name is required'],
-            trim: true,
-            maxlength: [200, 'Item name cannot exceed 200 characters']
-        },
-        description: {
-            type: String,
-            trim: true,
-            maxlength: [500, 'Description cannot exceed 500 characters']
-        },
-        unit: {
-            type: String,
-            required: [true, 'Unit is required'],
-            trim: true,
-            maxlength: [50, 'Unit cannot exceed 50 characters']
-        }
+    itemName: {
+        type: String,
+        required: [true, 'Item name is required'],
+        trim: true,
+        maxlength: [200, 'Item name cannot exceed 200 characters'],
     },
     price: {
-        amount: {
-            type: Number,
-            required: [true, 'Price amount is required'],
-            min: [0, 'Price cannot be negative']
-        },
-        currency: {
-            type: String,
-            required: [true, 'Currency is required'],
-            uppercase: true,
-            length: [3, 'Currency must be exactly 3 characters']
-        }
+        type: Number,
+        required: [true, 'Price is required'],
+        min: [0, 'Price cannot be negative'],
     },
-    priceRange: {
-        min: {
-            type: Number,
-            min: [0, 'Minimum price cannot be negative']
-        },
-        max: {
-            type: Number,
-            min: [0, 'Maximum price cannot be negative']
-        }
+    currency: {
+        type: String,
+        required: [true, 'Currency is required'],
+        trim: true,
+        uppercase: true,
+        minlength: [3, 'Currency code must be 3 characters'],
+        maxlength: [3, 'Currency code must be 3 characters'],
+    },
+    unit: {
+        type: String,
+        trim: true,
+        maxlength: [50, 'Unit cannot exceed 50 characters'],
     },
     source: {
-        type: {
-            type: String,
-            required: [true, 'Source type is required'],
-            enum: ['user_reported', 'official', 'website', 'api', 'survey', 'other']
-        },
-        name: {
-            type: String,
-            required: [true, 'Source name is required'],
-            trim: true,
-            maxlength: [100, 'Source name cannot exceed 100 characters']
-        },
-        url: {
-            type: String,
-            trim: true,
-            match: [/^https?:\/\/.+/, 'Please enter a valid URL']
-        },
-        date: {
-            type: Date,
-            required: [true, 'Source date is required'],
-            default: Date.now
-        }
+        type: String,
+        trim: true,
+        maxlength: [200, 'Source cannot exceed 200 characters'],
     },
-    accuracy: {
-        level: {
-            type: String,
-            enum: ['low', 'medium', 'high', 'verified'],
-            default: 'medium'
-        },
-        confidence: {
-            type: Number,
-            min: [0, 'Confidence must be between 0 and 100'],
-            max: [100, 'Confidence must be between 0 and 100'],
-            default: 50
-        }
-    },
-    reportedBy: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    verifiedBy: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'User'
-    },
-    verifiedAt: Date,
-    isActive: {
-        type: Boolean,
-        default: true
-    },
-    tags: [String],
     notes: {
         type: String,
-        maxlength: [1000, 'Notes cannot exceed 1000 characters']
-    }
+        trim: true,
+        maxlength: [500, 'Notes cannot exceed 500 characters'],
+    },
+    dateRecorded: {
+        type: Date,
+        default: Date.now,
+    },
+    userId: {
+        type: String,
+        required: [true, 'User ID is required'],
+        ref: 'User',
+    },
+    isVerified: {
+        type: Boolean,
+        default: false,
+    },
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: {
+        transform: function (doc, ret) {
+            delete ret.__v;
+            return ret;
+        },
+    },
 });
-priceSchema.index({ city: 1, category: 1 });
-priceSchema.index({ category: 1, subcategory: 1 });
-priceSchema.index({ 'item.name': 1 });
-priceSchema.index({ 'price.amount': 1 });
-priceSchema.index({ 'source.date': -1 });
-priceSchema.index({ reportedBy: 1 });
-priceSchema.index({ isActive: 1 });
-priceSchema.index({ createdAt: -1 });
-priceSchema.index({
-    'item.name': 'text',
-    'item.description': 'text',
-    subcategory: 'text',
-    tags: 'text'
-});
-priceSchema.index({ city: 1, category: 1, isActive: 1, createdAt: -1 });
-priceSchema.virtual('formattedPrice').get(function () {
-    return `${this.price.amount} ${this.price.currency}`;
-});
-priceSchema.methods.convertTo = function (targetCurrency, exchangeRate) {
-    if (this.price.currency === targetCurrency) {
-        return this.price.amount;
-    }
-    return this.price.amount * exchangeRate;
-};
-priceSchema.pre('save', function (next) {
-    if (this.priceRange && this.priceRange.min !== undefined && this.priceRange.max !== undefined) {
-        if (this.priceRange.min > this.priceRange.max) {
-            next(new Error('Minimum price cannot be greater than maximum price'));
-        }
-    }
-    next();
-});
-const Price = mongoose_1.default.model('Price', priceSchema);
-exports.default = Price;
+priceSchema.index({ cityId: 1 });
+priceSchema.index({ categoryId: 1 });
+priceSchema.index({ category: 1 });
+priceSchema.index({ itemName: 1 });
+priceSchema.index({ userId: 1 });
+priceSchema.index({ dateRecorded: -1 });
+priceSchema.index({ isVerified: 1 });
+priceSchema.index({ cityId: 1, category: 1 });
+priceSchema.index({ cityId: 1, itemName: 1 });
+exports.Price = mongoose_1.default.model('Price', priceSchema);
 //# sourceMappingURL=Price.js.map

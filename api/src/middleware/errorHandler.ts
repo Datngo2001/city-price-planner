@@ -1,74 +1,73 @@
-import { Request, Response, NextFunction } from 'express';
-import { CustomError, ApiResponse } from '@/types';
+import { NextFunction, Request, Response } from 'express';
+import { IApiResponse } from '../types';
 
-const errorHandler = (err: CustomError, req: Request, res: Response, next: NextFunction): void => {
-  let error = { ...err };
-  error.message = err.message;
-
-  // Log error
-  console.error('Error:', err);
-
-  // Mongoose bad ObjectId
-  if (err.name === 'CastError') {
-    const message = 'Resource not found';
-    error = {
-      message,
-      statusCode: 404
-    } as CustomError;
-  }
-
-  // Mongoose duplicate key
-  if ((err as any).code === 11000) {
-    const field = Object.keys((err as any).keyValue)[0];
-    const message = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-    error = {
-      message,
-      statusCode: 400
-    } as CustomError;
-  }
+export const errorHandler = (
+  error: any,
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  let statusCode = 500;
+  let message = 'Internal Server Error';
+  let errorDetails: any = null;
 
   // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const message = Object.values((err as any).errors).map((val: any) => val.message).join(', ');
-    error = {
-      message,
-      statusCode: 400
-    } as CustomError;
+  if (error.name === 'ValidationError') {
+    statusCode = 400;
+    message = 'Validation Error';
+    errorDetails = Object.values(error.errors).map((err: any) => err.message);
   }
-
+  
+  // Mongoose duplicate key error
+  else if (error.code === 11000) {
+    statusCode = 400;
+    message = 'Duplicate field value';
+    const field = Object.keys(error.keyValue)[0];
+    errorDetails = `${field} already exists`;
+  }
+  
+  // Mongoose cast error
+  else if (error.name === 'CastError') {
+    statusCode = 400;
+    message = 'Invalid ID format';
+  }
+  
   // JWT errors
-  if (err.name === 'JsonWebTokenError') {
-    const message = 'Invalid token';
-    error = {
-      message,
-      statusCode: 401
-    } as CustomError;
+  else if (error.name === 'JsonWebTokenError') {
+    statusCode = 401;
+    message = 'Invalid token';
+  }
+  
+  else if (error.name === 'TokenExpiredError') {
+    statusCode = 401;
+    message = 'Token expired';
+  }
+  
+  // Custom error with status code
+  else if (error.statusCode) {
+    statusCode = error.statusCode;
+    message = error.message;
   }
 
-  if (err.name === 'TokenExpiredError') {
-    const message = 'Token expired';
-    error = {
-      message,
-      statusCode: 401
-    } as CustomError;
+  // Log error for debugging
+  if (process.env.NODE_ENV === 'development') {
+    console.error('Error Details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      statusCode,
+    });
   }
 
-  // Default error response
-  const statusCode = error.statusCode || err.statusCode || 500;
-  const message = error.message || 'Server Error';
-
-  const response: ApiResponse = {
+  const response: IApiResponse = {
     success: false,
     message,
-    ...(process.env.NODE_ENV === 'development' && {
-      meta: {
-        stack: err.stack,
-        error: err
-      }
-    })
+    error: process.env.NODE_ENV === 'development' ? error.message : message,
   };
+
+  if (errorDetails) {
+    response.error = errorDetails;
+  }
 
   res.status(statusCode).json(response);
 };
-
-export default errorHandler;

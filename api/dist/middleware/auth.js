@@ -3,33 +3,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.optionalAuth = exports.authorize = exports.auth = void 0;
+exports.optionalAuthenticate = exports.authenticate = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const User_1 = __importDefault(require("@/models/User"));
-const auth = async (req, res, next) => {
+const User_1 = require("../models/User");
+const authenticate = async (req, res, next) => {
     try {
-        const authHeader = req.header('Authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        if (!token) {
             res.status(401).json({
                 success: false,
-                message: 'No token provided or invalid format'
+                message: 'Access denied. No token provided.',
             });
             return;
         }
-        const token = authHeader.substring(7);
-        const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
-        const user = await User_1.default.findById(decoded.id).select('-password');
-        if (!user) {
-            res.status(401).json({
-                success: false,
-                message: 'User not found'
-            });
-            return;
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+            throw new Error('JWT_SECRET is not defined in environment variables');
         }
-        if (!user.isActive) {
+        const decoded = jsonwebtoken_1.default.verify(token, jwtSecret);
+        const user = await User_1.User.findById(decoded.userId).select('-password');
+        if (!user || !user.isActive) {
             res.status(401).json({
                 success: false,
-                message: 'User account is deactivated'
+                message: 'Invalid token or user not found.',
             });
             return;
         }
@@ -37,58 +33,30 @@ const auth = async (req, res, next) => {
         next();
     }
     catch (error) {
-        if (error.name === 'JsonWebTokenError') {
-            res.status(401).json({
-                success: false,
-                message: 'Invalid token'
-            });
-            return;
-        }
-        if (error.name === 'TokenExpiredError') {
-            res.status(401).json({
-                success: false,
-                message: 'Token expired'
-            });
-            return;
-        }
-        console.error('Auth middleware error:', error);
-        res.status(500).json({
+        res.status(401).json({
             success: false,
-            message: 'Server error during authentication'
+            message: 'Invalid token.',
+            error: error instanceof Error ? error.message : 'Authentication failed',
         });
     }
 };
-exports.auth = auth;
-const authorize = (...roles) => {
-    return (req, res, next) => {
-        if (!req.user) {
-            res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
-            return;
-        }
-        if (!roles.includes(req.user.role)) {
-            res.status(403).json({
-                success: false,
-                message: 'Insufficient permissions'
-            });
-            return;
-        }
-        next();
-    };
-};
-exports.authorize = authorize;
-const optionalAuth = async (req, res, next) => {
+exports.authenticate = authenticate;
+const optionalAuthenticate = async (req, res, next) => {
     try {
-        const authHeader = req.header('Authorization');
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            const token = authHeader.substring(7);
-            const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
-            const user = await User_1.default.findById(decoded.id).select('-password');
-            if (user && user.isActive) {
-                req.user = user;
-            }
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        if (!token) {
+            next();
+            return;
+        }
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+            next();
+            return;
+        }
+        const decoded = jsonwebtoken_1.default.verify(token, jwtSecret);
+        const user = await User_1.User.findById(decoded.userId).select('-password');
+        if (user && user.isActive) {
+            req.user = user;
         }
         next();
     }
@@ -96,5 +64,5 @@ const optionalAuth = async (req, res, next) => {
         next();
     }
 };
-exports.optionalAuth = optionalAuth;
+exports.optionalAuthenticate = optionalAuthenticate;
 //# sourceMappingURL=auth.js.map

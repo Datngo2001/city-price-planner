@@ -1,58 +1,54 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const errorHandler = (err, req, res, next) => {
-    let error = { ...err };
-    error.message = err.message;
-    console.error('Error:', err);
-    if (err.name === 'CastError') {
-        const message = 'Resource not found';
-        error = {
-            message,
-            statusCode: 404
-        };
+exports.errorHandler = void 0;
+const errorHandler = (error, req, res, next) => {
+    let statusCode = 500;
+    let message = 'Internal Server Error';
+    let errorDetails = null;
+    if (error.name === 'ValidationError') {
+        statusCode = 400;
+        message = 'Validation Error';
+        errorDetails = Object.values(error.errors).map((err) => err.message);
     }
-    if (err.code === 11000) {
-        const field = Object.keys(err.keyValue)[0];
-        const message = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-        error = {
-            message,
-            statusCode: 400
-        };
+    else if (error.code === 11000) {
+        statusCode = 400;
+        message = 'Duplicate field value';
+        const field = Object.keys(error.keyValue)[0];
+        errorDetails = `${field} already exists`;
     }
-    if (err.name === 'ValidationError') {
-        const message = Object.values(err.errors).map((val) => val.message).join(', ');
-        error = {
-            message,
-            statusCode: 400
-        };
+    else if (error.name === 'CastError') {
+        statusCode = 400;
+        message = 'Invalid ID format';
     }
-    if (err.name === 'JsonWebTokenError') {
-        const message = 'Invalid token';
-        error = {
-            message,
-            statusCode: 401
-        };
+    else if (error.name === 'JsonWebTokenError') {
+        statusCode = 401;
+        message = 'Invalid token';
     }
-    if (err.name === 'TokenExpiredError') {
-        const message = 'Token expired';
-        error = {
-            message,
-            statusCode: 401
-        };
+    else if (error.name === 'TokenExpiredError') {
+        statusCode = 401;
+        message = 'Token expired';
     }
-    const statusCode = error.statusCode || err.statusCode || 500;
-    const message = error.message || 'Server Error';
+    else if (error.statusCode) {
+        statusCode = error.statusCode;
+        message = error.message;
+    }
+    if (process.env.NODE_ENV === 'development') {
+        console.error('Error Details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            statusCode,
+        });
+    }
     const response = {
         success: false,
         message,
-        ...(process.env.NODE_ENV === 'development' && {
-            meta: {
-                stack: err.stack,
-                error: err
-            }
-        })
+        error: process.env.NODE_ENV === 'development' ? error.message : message,
     };
+    if (errorDetails) {
+        response.error = errorDetails;
+    }
     res.status(statusCode).json(response);
 };
-exports.default = errorHandler;
+exports.errorHandler = errorHandler;
 //# sourceMappingURL=errorHandler.js.map

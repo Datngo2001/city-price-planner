@@ -1,14 +1,10 @@
 import { Router } from 'express';
 import {
-    createCity,
-    deleteCity,
     getCities,
     getCityById,
-    searchCitiesNearby,
-    updateCity
+    searchCitiesNearby
 } from '../controllers/cityController';
-import { authenticate } from '../middleware/auth';
-import { cityCreateSchema, cityUpdateSchema, queryParamsSchema, validate, validateQuery } from '../middleware/validation';
+import { queryParamsSchema, validateQuery } from '../middleware/validation';
 
 const router = Router();
 
@@ -38,20 +34,20 @@ router.get('/:id', getCityById);
  * @desc    Create a new city
  * @access  Private
  */
-router.post('/', authenticate, validate(cityCreateSchema), createCity);
+// router.post('/', authenticate, validate(cityCreateSchema), createCity);
 
 /**
  * @route   PUT /api/cities/:id
  * @desc    Update city
  * @access  Private
  */
-router.put('/:id', authenticate, validate(cityUpdateSchema), updateCity);
+// router.put('/:id', authenticate, validate(cityUpdateSchema), updateCity);
 
 /**
  * @route   DELETE /api/cities/:id
  * @desc    Delete (deactivate) city
  * @access  Private
  */
-router.delete('/:id', authenticate, deleteCity);
+// router.delete('/:id', authenticate, deleteCity);
 
 export default router;

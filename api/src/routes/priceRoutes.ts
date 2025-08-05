@@ -1,15 +1,11 @@
 import { Router } from 'express';
 import {
-    createPrice,
-    deletePrice,
     getPriceAverages,
     getPriceById,
     getPrices,
-    getPricesByCity,
-    updatePrice
+    getPricesByCity
 } from '../controllers/priceController';
-import { authenticate } from '../middleware/auth';
-import { priceCreateSchema, priceUpdateSchema, queryParamsSchema, validate, validateQuery } from '../middleware/validation';
+import { queryParamsSchema, validateQuery } from '../middleware/validation';
 
 const router = Router();
 
@@ -32,21 +28,21 @@ router.get('/:id', getPriceById);
  * @desc    Create a new price record
  * @access  Private
  */
-router.post('/', authenticate, validate(priceCreateSchema), createPrice);
+// router.post('/', authenticate, validate(priceCreateSchema), createPrice);
 
 /**
  * @route   PUT /api/prices/:id
  * @desc    Update price record
  * @access  Private (own records only)
  */
-router.put('/:id', authenticate, validate(priceUpdateSchema), updatePrice);
+// router.put('/:id', authenticate, validate(priceUpdateSchema), updatePrice);
 
 /**
  * @route   DELETE /api/prices/:id
  * @desc    Delete price record
  * @access  Private (own records only)
  */
-router.delete('/:id', authenticate, deletePrice);
+// router.delete('/:id', authenticate, deletePrice);
 
 /**
  * @route   GET /api/prices/city/:cityId

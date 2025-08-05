@@ -1,7 +1,10 @@
+import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { connectDatabase } from '../config/database';
 import { Category } from '../models/Category';
 import { City } from '../models/City';
+
+dotenv.config();
 
 // Sample cities data
 const cities = [
@@ -55,6 +58,16 @@ const cities = [
     currency: 'AUD',
     timezone: 'Australia/Sydney',
   },
+  {
+    name: 'Ho Chi Minh City',
+    country: 'Vietnam',
+    region: 'Ho Chi Minh',
+    latitude: 10.8231,
+    longitude: 106.6297,
+    population: 8400000,
+    currency: 'VND',
+    timezone: 'Asia/Ho_Chi_Minh',
+  }
 ];
 
 // Sample categories data
@@ -133,3 +146,4 @@ if (require.main === module) {
 }
 
 export { seedDatabase };
+

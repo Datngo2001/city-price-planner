@@ -7,10 +7,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { errorHandler } from './middleware/errorHandler';
 import { notFoundHandler } from './middleware/notFoundHandler';
-import authRoutes from './routes/authRoutes';
 import cityRoutes from './routes/cityRoutes';
 import priceRoutes from './routes/priceRoutes';
-import userRoutes from './routes/userRoutes';
 
 const app = express();
 
@@ -57,8 +55,8 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
+// app.use('/api/auth', authRoutes); // TODO: Uncomment when auth routes are ready
+// app.use('/api/users', userRoutes); // TODO: Uncomment when auth routes are ready
 app.use('/api/cities', cityRoutes);
 app.use('/api/prices', priceRoutes);
 
